@@ -17,6 +17,15 @@ defmodule Graph.Serializer do
     end
   end
 
+  def get_vertex_metadata(%Graph{vertex_metadata: vm}, id, v) do
+    case Map.get(vm, id) do
+      {}    -> ""
+      nil   -> ""
+      metadata ->
+          Enum.map_join(metadata, ", ", fn({key, value}) -> "#{key}=#{value}" end)
+    end
+  end
+
   def encode_label([h|_] = label) when length(label) == 1, do: encode_label(h)
   def encode_label(label) when is_binary(label), do: quoted(label)
   def encode_label(label) when is_integer(label), do: Integer.to_string(label)

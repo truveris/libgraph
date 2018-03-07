@@ -29,6 +29,7 @@ defmodule Graph do
             out_edges: %{},
             edges: %{},
             vertex_labels: %{},
+            vertex_metadata: %{},
             vertices: %{},
             type: :directed
 
@@ -37,6 +38,7 @@ defmodule Graph do
   @type vertex_id :: non_neg_integer
   @type vertex :: term
   @type label :: term
+  @type metadata :: term
   @type edge_weight :: integer
   @type edge_key :: {vertex_id, vertex_id}
   @type edge_value :: %{label => edge_weight}
@@ -46,6 +48,7 @@ defmodule Graph do
     out_edges: %{vertex_id => MapSet.t},
     edges: %{edge_key => edge_value},
     vertex_labels: %{vertex_id => term},
+    vertex_metadata: %{vertex_id => map},
     vertices: %{vertex_id => vertex},
     type: graph_type
   }
@@ -641,6 +644,27 @@ defmodule Graph do
 
   def label_vertex(g, v, vlabel)do
     label_vertex(g, v, [vlabel])
+  end
+
+  def add_vertex_metadata(%__MODULE__{vertices: vs, vertex_metadata: metadata} = g, v, vmetadata) do
+    with v_id <- Graph.Utils.vertex_id(v),
+         true <- Map.has_key?(vs, v_id),
+         old_vmetadata <- Map.get(metadata, v_id, %{}),
+         new_vmetadata <- Map.merge(old_vmetadata, vmetadata),
+         metadata <- Map.put(metadata, v_id, new_vmetadata) do
+      %__MODULE__{g | vertex_metadata: metadata}
+    else
+      _ -> {:error, {:invalid_vertex, v}}
+    end
+  end
+
+  def vertex_metadata(%__MODULE__{vertex_metadata: metadata}, v) do
+    with v1_id <- Graph.Utils.vertex_id(v),
+         true <- Map.has_key?(metadata, v1_id) do
+      Map.get(metadata, v1_id)
+    else
+      _ -> {}
+    end
   end
 
   @doc """
